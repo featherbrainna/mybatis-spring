@@ -15,12 +15,12 @@
  */
 package org.mybatis.spring;
 
-import static org.springframework.util.Assert.notNull;
-
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.transaction.support.ResourceHolderSupport;
+
+import static org.springframework.util.Assert.notNull;
 
 /**
  * Used to keep current {@code SqlSession} in {@code TransactionSynchronizationManager}.
@@ -33,13 +33,23 @@ import org.springframework.transaction.support.ResourceHolderSupport;
  */
 public final class SqlSessionHolder extends ResourceHolderSupport {
 
+  /**
+   * sqlSession底层封装对象
+   */
   private final SqlSession sqlSession;
 
+  /**
+   * 执行器类型
+   */
   private final ExecutorType executorType;
 
+  /**
+   * 异常转换器
+   */
   private final PersistenceExceptionTranslator exceptionTranslator;
 
   /**
+   * 构造器。初始化所有属性
    * Creates a new holder instance.
    *
    * @param sqlSession the {@code SqlSession} has to be hold.

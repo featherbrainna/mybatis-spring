@@ -15,16 +15,16 @@
  */
 package org.mybatis.spring.transaction;
 
-import java.sql.Connection;
-import java.util.Properties;
-
-import javax.sql.DataSource;
-
 import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.util.Properties;
+
 /**
+ * SpringManagedTransaction工厂类
  * Creates a {@code SpringManagedTransaction}.
  *
  * @author Hunter Presnall
@@ -32,6 +32,7 @@ import org.apache.ibatis.transaction.TransactionFactory;
 public class SpringManagedTransactionFactory implements TransactionFactory {
 
   /**
+   * 支持通过数据源对象创建 Transaction 对象
    * {@inheritDoc}
    */
   @Override
@@ -40,6 +41,7 @@ public class SpringManagedTransactionFactory implements TransactionFactory {
   }
 
   /**
+   * 不支持通过数据库连接创建 Transaction
    * {@inheritDoc}
    */
   @Override

@@ -18,6 +18,7 @@ package org.mybatis.spring;
 import org.springframework.dao.UncategorizedDataAccessException;
 
 /**
+ * MyBatis 自定义的异常类
  * MyBatis specific subclass of {@code UncategorizedDataAccessException}, for MyBatis system errors that do
  * not match any concrete {@code org.springframework.dao} exceptions.
  *

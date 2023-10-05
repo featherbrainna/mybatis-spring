@@ -24,6 +24,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 多 @MapperScan 的注解，功能是相同的
+ * 注解解析器：{@link MapperScannerRegistrar.RepeatingRegistrar}
+ *
  * The Container annotation that aggregates several {@link MapperScan} annotations.
  *
  * <p>Can be used natively, declaring several nested {@link MapperScan} annotations.
@@ -40,5 +43,8 @@ import java.lang.annotation.Target;
 @Documented
 @Import(MapperScannerRegistrar.RepeatingRegistrar.class)
 public @interface MapperScans {
+  /**
+   * @return @MapperScan 数组
+   */
   MapperScan[] value();
 }

@@ -15,14 +15,16 @@
  */
 package org.mybatis.spring.support;
 
-import static org.springframework.util.Assert.notNull;
-
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.dao.support.DaoSupport;
 
+import static org.springframework.util.Assert.notNull;
+
 /**
+ * 继承 DaoSupport 抽象类，SqlSession 的 DaoSupport 抽象类。主要功能是辅助开发人员编写DAO层实现
+ *
  * Convenient super class for MyBatis SqlSession data access objects.
  * It gives you access to the template which can then be used to execute SQL methods.
  * <p>
@@ -39,21 +41,28 @@ import org.springframework.dao.support.DaoSupport;
  */
 public abstract class SqlSessionDaoSupport extends DaoSupport {
 
+  /**
+   * SqlSessionTemplate对象
+   */
   private SqlSessionTemplate sqlSessionTemplate;
 
   /**
+   * 设置 sqlSessionTemplate 属性
    * Set MyBatis SqlSessionFactory to be used by this DAO.
    * Will automatically create SqlSessionTemplate for the given SqlSessionFactory.
    *
    * @param sqlSessionFactory a factory of SqlSession
    */
   public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
+    //如果 sqlSessionTemplate 属性为空，或者 传入的sqlSessionFactory不等于sqlSessionTemplate中的sqlSessionFactory
     if (this.sqlSessionTemplate == null || sqlSessionFactory != this.sqlSessionTemplate.getSqlSessionFactory()) {
+      //通过sqlSessionFactory参数创建 sqlSessionTemplate 对象
       this.sqlSessionTemplate = createSqlSessionTemplate(sqlSessionFactory);
     }
   }
 
   /**
+   * 通过 sqlSessionFactory 创建 SqlSessionTemplate对象
    * Create a SqlSessionTemplate for the given SqlSessionFactory.
    * Only invoked if populating the DAO with a SqlSessionFactory reference!
    * <p>Can be overridden in subclasses to provide a SqlSessionTemplate instance

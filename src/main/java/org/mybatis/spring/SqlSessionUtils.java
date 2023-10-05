@@ -15,8 +15,6 @@
  */
 package org.mybatis.spring;
 
-import static org.springframework.util.Assert.notNull;
-
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.ExecutorType;
@@ -32,7 +30,11 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import static org.springframework.util.Assert.notNull;
+
 /**
+ * SqlSession的工具类。可以将 sqlSesson注册到Spring事务管理器，或从事务管理器获取sqlSession
+ *
  * Handles MyBatis SqlSession life cycle. It can register and get SqlSessions from
  * Spring {@code TransactionSynchronizationManager}. Also works if no transaction is active.
  *
@@ -69,6 +71,9 @@ public final class SqlSessionUtils {
   }
 
   /**
+   * 获取 SqlSesson 对象。
+   * 1.先尝试从Spring事务管理器中获取SqlSession对象
+   * 2.再通过SqlSessionFactory新建SqlSession对象并将其交由Spring事务管理器
    * Gets an SqlSession from Spring Transaction Manager or creates a new one if needed.
    * Tries to get a SqlSession out of current transaction. If there is not any, it creates a new one.
    * Then, it synchronizes the SqlSession with the transaction if Spring TX is active and
@@ -84,19 +89,25 @@ public final class SqlSessionUtils {
    */
   public static SqlSession getSqlSession(SqlSessionFactory sessionFactory, ExecutorType executorType, PersistenceExceptionTranslator exceptionTranslator) {
 
+    //1.检测 sessionFactory、executorType 非空
     notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
     notNull(executorType, NO_EXECUTOR_TYPE_SPECIFIED);
 
+    //2.依据sessionFactory对象从Spring事务管理器中获取SqlSessionHolder，其中封装了  SqlSession 对象
     SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
 
+    //3.获取 SqlSessionHolder 中封装的 SqlSession 对象
     SqlSession session = sessionHolder(executorType, holder);
+    //4.如果 SqlSession 对象非空，返回
     if (session != null) {
       return session;
     }
 
     LOGGER.debug(() -> "Creating a new SqlSession");
+    //5.如果上述 SqlSession 为空，则通过 sessionFactory 创建新的 SqlSession 对象
     session = sessionFactory.openSession(executorType);
 
+    //6.将 sqlSession对象与 Spring 事务管理器绑定
     registerSessionHolder(sessionFactory, executorType, exceptionTranslator, session);
 
     return session;

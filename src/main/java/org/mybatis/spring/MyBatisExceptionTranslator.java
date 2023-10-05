@@ -15,10 +15,6 @@
  */
 package org.mybatis.spring;
 
-import java.sql.SQLException;
-
-import javax.sql.DataSource;
-
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
@@ -26,7 +22,11 @@ import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
 import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.transaction.TransactionException;
 
+import javax.sql.DataSource;
+import java.sql.SQLException;
+
 /**
+ * MyBatis 自定义的异常转换器
  * Default exception translator.
  *
  * Translates MyBatis SqlSession returned exception into a Spring
@@ -38,11 +38,18 @@ import org.springframework.transaction.TransactionException;
  */
 public class MyBatisExceptionTranslator implements PersistenceExceptionTranslator {
 
+  /**
+   * 数据源
+   */
   private final DataSource dataSource;
 
+  /**
+   * SQLExceptionTranslator异常转换器
+   */
   private SQLExceptionTranslator exceptionTranslator;
 
   /**
+   * 构造器，初始化 dataSource 属性
    * Creates a new {@code DataAccessExceptionTranslator} instance.
    *
    * @param dataSource DataSource to use to find metadata and establish which error codes are usable.
@@ -58,10 +65,12 @@ public class MyBatisExceptionTranslator implements PersistenceExceptionTranslato
   }
 
   /**
+   * 转换异常
    * {@inheritDoc}
    */
   @Override
   public DataAccessException translateExceptionIfPossible(RuntimeException e) {
+    // TODO ???
     if (e instanceof PersistenceException) {
       // Batch exceptions come inside another PersistenceException
       // recursion has a risk of infinite loop so better make another if
@@ -80,6 +89,7 @@ public class MyBatisExceptionTranslator implements PersistenceExceptionTranslato
   }
 
   /**
+   * 初始化属性 exceptionTranslator
    * Initializes the internal translator reference.
    */
   private synchronized void initExceptionTranslator() {

@@ -15,11 +15,6 @@
  */
 package org.mybatis.spring.mapper;
 
-import static org.springframework.util.Assert.notNull;
-
-import java.lang.annotation.Annotation;
-import java.util.Map;
-
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.PropertyValue;
@@ -39,7 +34,15 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 
+import java.lang.annotation.Annotation;
+import java.util.Map;
+
+import static org.springframework.util.Assert.notNull;
+
 /**
+ * 实现 BeanDefinitionRegistryPostProcessor、InitializingBean、ApplicationContextAware、BeanNameAware 接口，
+ * 定义需要扫描的包，将包中符合的 Mapper 接口，注册成 beanClass 为 MapperFactoryBean 的 BeanDefinition 对象，从而实现创建 Mapper 对象。
+ *
  * BeanDefinitionRegistryPostProcessor that searches recursively starting from a base package for
  * interfaces and registers them as {@code MapperFactoryBean}. Note that only interfaces with at
  * least one method will be registered; concrete classes will be ignored.
@@ -300,10 +303,12 @@ public class MapperScannerConfigurer implements BeanDefinitionRegistryPostProces
    */
   @Override
   public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+    //1.如果有属性占位符，则进行获得，例如${basePackage}等等
     if (this.processPropertyPlaceHolders) {
       processPropertyPlaceHolders();
     }
 
+    //2.创建 ClassPathMapperScanner 对象，并设置其相关属性
     ClassPathMapperScanner scanner = new ClassPathMapperScanner(registry);
     scanner.setAddToConfig(this.addToConfig);
     scanner.setAnnotationClass(this.annotationClass);
@@ -314,7 +319,9 @@ public class MapperScannerConfigurer implements BeanDefinitionRegistryPostProces
     scanner.setSqlSessionTemplateBeanName(this.sqlSessionTemplateBeanName);
     scanner.setResourceLoader(this.applicationContext);
     scanner.setBeanNameGenerator(this.nameGenerator);
+    //3.注册 scanner 过滤器
     scanner.registerFilters();
+    //4.执行扫描
     scanner.scan(StringUtils.tokenizeToStringArray(this.basePackage, ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS));
   }
 
@@ -342,14 +349,22 @@ public class MapperScannerConfigurer implements BeanDefinitionRegistryPostProces
         prc.postProcessBeanFactory(factory);
       }
 
+      //获取 PropertyValue 的集合对象 PropertyValues
       PropertyValues values = mapperScannerBean.getPropertyValues();
 
+      //依据属性名和PropertyValues获取属性值，并设置属性
       this.basePackage = updatePropertyValue("basePackage", values);
       this.sqlSessionFactoryBeanName = updatePropertyValue("sqlSessionFactoryBeanName", values);
       this.sqlSessionTemplateBeanName = updatePropertyValue("sqlSessionTemplateBeanName", values);
     }
   }
 
+  /**
+   * 获得属性值，并转换成 String 类型
+   * @param propertyName 属性名
+   * @param values 属性值集合
+   * @return 属性值
+   */
   private String updatePropertyValue(String propertyName, PropertyValues values) {
     PropertyValue property = values.getPropertyValue(propertyName);
 

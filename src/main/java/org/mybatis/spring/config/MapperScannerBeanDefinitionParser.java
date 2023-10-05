@@ -15,10 +15,8 @@
  */
 package org.mybatis.spring.config;
 
-import java.lang.annotation.Annotation;
-
-import org.mybatis.spring.mapper.MapperFactoryBean;
 import org.mybatis.spring.mapper.ClassPathMapperScanner;
+import org.mybatis.spring.mapper.MapperFactoryBean;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanNameGenerator;
@@ -29,7 +27,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
+import java.lang.annotation.Annotation;
+
 /**
+ * 实现 BeanDefinitionParser 接口，<mybatis:scan /> 的解析器。
  * A {#code BeanDefinitionParser} that handles the element scan of the MyBatis.
  * namespace
  * 
@@ -55,22 +56,27 @@ public class MapperScannerBeanDefinitionParser implements BeanDefinitionParser {
    */
   @Override
   public synchronized BeanDefinition parse(Element element, ParserContext parserContext) {
+    //1.创建 ClassPathMapperScanner 对象
     ClassPathMapperScanner scanner = new ClassPathMapperScanner(parserContext.getRegistry());
     ClassLoader classLoader = scanner.getResourceLoader().getClassLoader();
     XmlReaderContext readerContext = parserContext.getReaderContext();
+    //2.设置 resourceLoader 属性
     scanner.setResourceLoader(readerContext.getResourceLoader());
     try {
+      //3.解析 annotation类型 属性
       String annotationClassName = element.getAttribute(ATTRIBUTE_ANNOTATION);
       if (StringUtils.hasText(annotationClassName)) {
         @SuppressWarnings("unchecked")
         Class<? extends Annotation> markerInterface = (Class<? extends Annotation>) classLoader.loadClass(annotationClassName);
         scanner.setAnnotationClass(markerInterface);
       }
+      //4.解析 marker-interface 属性
       String markerInterfaceClassName = element.getAttribute(ATTRIBUTE_MARKER_INTERFACE);
       if (StringUtils.hasText(markerInterfaceClassName)) {
         Class<?> markerInterface = classLoader.loadClass(markerInterfaceClassName);
         scanner.setMarkerInterface(markerInterface);
       }
+      //5.解析 name-generator 属性
       String nameGeneratorClassName = element.getAttribute(ATTRIBUTE_NAME_GENERATOR);
       if (StringUtils.hasText(nameGeneratorClassName)) {
         Class<?> nameGeneratorClass = classLoader.loadClass(nameGeneratorClassName);
@@ -80,12 +86,17 @@ public class MapperScannerBeanDefinitionParser implements BeanDefinitionParser {
     } catch (Exception ex) {
       readerContext.error(ex.getMessage(), readerContext.extractSource(element), ex.getCause());
     }
+    //6.解析 template-ref 属性
     String sqlSessionTemplateBeanName = element.getAttribute(ATTRIBUTE_TEMPLATE_REF);
     scanner.setSqlSessionTemplateBeanName(sqlSessionTemplateBeanName);
+    //7.解析 factory-ref 属性
     String sqlSessionFactoryBeanName = element.getAttribute(ATTRIBUTE_FACTORY_REF);
     scanner.setSqlSessionFactoryBeanName(sqlSessionFactoryBeanName);
+    //8.注册 scanner 的过滤器
     scanner.registerFilters();
+    //9.获得要扫描的包
     String basePackage = element.getAttribute(ATTRIBUTE_BASE_PACKAGE);
+    //10.执行扫描
     scanner.scan(StringUtils.tokenizeToStringArray(basePackage, ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS));
     return null;
   }

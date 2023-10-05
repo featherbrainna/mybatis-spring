@@ -15,15 +15,18 @@
  */
 package org.mybatis.spring.mapper;
 
-import static org.springframework.util.Assert.notNull;
-
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.session.Configuration;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.support.SqlSessionDaoSupport;
 import org.springframework.beans.factory.FactoryBean;
 
+import static org.springframework.util.Assert.notNull;
+
 /**
+ * 实现 FactoryBean 接口，继承 SqlSessionDaoSupport 抽象类，创建 Mapper 对象。
+ * 是最基础的、单个的负责创建 Mapper 代理对象的类
+ *
  * BeanFactory that enables injection of MyBatis mapper interfaces. It can be set up with a
  * SqlSessionFactory or a pre-configured SqlSessionTemplate.
  * <p>
@@ -53,30 +56,51 @@ import org.springframework.beans.factory.FactoryBean;
  */
 public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> {
 
+  /**
+   * Mapper接口类型
+   */
   private Class<T> mapperInterface;
 
+  /**
+   * 是否添加到 {@link Configuration} 中，默认为true
+   */
   private boolean addToConfig = true;
 
+  /**
+   * 构造器
+   */
   public MapperFactoryBean() {
     //intentionally empty 
   }
-  
+
+  /**
+   * 构造器，初始化 mapperInterface 属性
+   */
   public MapperFactoryBean(Class<T> mapperInterface) {
     this.mapperInterface = mapperInterface;
   }
 
   /**
+   * 检查dao层的配置
+   * 1.校验 sqlSessionTemplate 非空
+   * 2.校验 mapperInterface 非空
+   * 3.添加 Mapper 接口到 configuration 中
    * {@inheritDoc}
    */
   @Override
   protected void checkDaoConfig() {
+    //1.校验父类的sqlSessionTemplate属性非空
     super.checkDaoConfig();
 
+    //2.校验本类的mapperInterface属性非空
     notNull(this.mapperInterface, "Property 'mapperInterface' is required");
 
+    //3.从sqlSessionTemplate获取 Configuration 配置对象
     Configuration configuration = getSqlSession().getConfiguration();
+    //4.如果 addToConfig 为true，且配置对象中没有 当前接口类型
     if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
       try {
+        //5.添加 Mapper 接口到 configuration 中
         configuration.addMapper(this.mapperInterface);
       } catch (Exception e) {
         logger.error("Error while adding the mapper '" + this.mapperInterface + "' to configuration.", e);
@@ -88,6 +112,7 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
   }
 
   /**
+   * 获得 Mapper 对象。注意，返回的是基于 Mapper 接口自动生成的代理对象。
    * {@inheritDoc}
    */
   @Override
